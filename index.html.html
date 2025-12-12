@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>團隊回覆確認回填表小工具</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --input-bg: #2c2c2c;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --accent-color: #00bcd4; /* 青色 */
+            --accent-hover: #00acc1;
+            --border-color: #424242;
+            --success-color: #4caf50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            border: 1px solid #333;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--accent-color);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 8px rgba(0, 188, 212, 0.2);
+        }
+
+        /* 按鈕區域 */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-generate {
+            background-color: var(--accent-color);
+            color: #121212;
+        }
+
+        .btn-generate:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-copy {
+            background-color: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            display: none; /* 初始隱藏 */
+        }
+
+        .btn-copy:hover {
+            background-color: rgba(0, 188, 212, 0.1);
+        }
+
+        /* 結果顯示區 */
+        .result-area {
+            margin-top: 25px;
+            background-color: #000;
+            border-radius: 6px;
+            padding: 15px;
+            border-left: 4px solid var(--accent-color);
+            display: none; /* 初始隱藏 */
+            position: relative;
+        }
+
+        .result-text {
+            white-space: pre-wrap; /* 保留換行 */
+            font-family: Consolas, monospace;
+            font-size: 0.95rem;
+            color: #d4d4d4;
+            line-height: 1.6;
+        }
+
+        /* 提示訊息 (Toast) */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: var(--success-color);
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>團隊回覆確認回填表</h2>
+    
+    <div class="form-group">
+        <label for="projectName">專題名稱</label>
+        <input type="text" id="projectName" placeholder="請輸入專題名稱">
+    </div>
+
+    <div class="form-group">
+        <label for="school">學校及系所</label>
+        <select id="school">
+            <option value="" disabled selected>請選擇學校</option>
+            <option value="東吳大學 - 資訊管理學系">東吳大學 - 資訊管理學系</option>
+            <option value="國立臺東大學 - 資訊工程學系">國立臺東大學 - 資訊工程學系</option>
+            <option value="國立臺灣海洋大學 - 資訊工程學系">國立臺灣海洋大學 - 資訊工程學系</option>
+            <option value="義守大學 - 資訊工程學系">義守大學 - 資訊工程學系</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="donorUnit">贈與單位</label>
+        <input type="text" id="donorUnit" placeholder="請填寫贈與單位名稱">
+    </div>
+
+    <div class="form-group">
+        <label for="inCharge">贈與單位負責人</label>
+        <input type="text" id="inCharge" placeholder="請填寫負責人姓名">
+    </div>
+
+    <div class="form-group">
+        <label for="contactInfo">聯絡電話 & Email</label>
+        <input type="text" id="contactInfo" placeholder="範例：0912-345-678 / example@email.com">
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-generate" onclick="generateReply()">生成回覆內容</button>
+        <button class="btn-copy" id="btnCopy" onclick="copyToClipboard()">複製內容</button>
+    </div>
+
+    <div class="result-area" id="resultArea">
+        <div class="result-text" id="resultText"></div>
+    </div>
+</div>
+
+<div id="toast" class="toast">已複製到剪貼簿！</div>
+
+<script>
+    function generateReply() {
+        // 獲取輸入值
+        const projectName = document.getElementById('projectName').value.trim();
+        const school = document.getElementById('school').value;
+        const donorUnit = document.getElementById('donorUnit').value.trim();
+        const inCharge = document.getElementById('inCharge').value.trim();
+        const contactInfo = document.getElementById('contactInfo').value.trim();
+
+        // 簡單驗證
+        if (!projectName || !school || !donorUnit || !inCharge || !contactInfo) {
+            alert("請將所有欄位填寫完整！");
+            return;
+        }
+
+        // 組合字串
+        const formattedText = `*專題名稱：${projectName}
+*學校及系所：
+${school}
+*贈與單位：${donorUnit}
+*贈與單位負責人：${inCharge}
+*贈與單位負責人電話 & Email：${contactInfo}`;
+
+        // 顯示結果區域
+        const resultArea = document.getElementById('resultArea');
+        const resultText = document.getElementById('resultText');
+        const btnCopy = document.getElementById('btnCopy');
+
+        resultText.textContent = formattedText;
+        resultArea.style.display = 'block';
+        btnCopy.style.display = 'block'; // 顯示複製按鈕
+        
+        // 滾動到下方
+        resultArea.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyToClipboard() {
+        const textToCopy = document.getElementById('resultText').textContent;
+        
+        navigator.clipboard.writeText(textToCopy).then(function() {
+            showToast();
+        }, function(err) {
+            alert('複製失敗，請手動選取複製');
+        });
+    }
+
+    function showToast() {
+        const toast = document.getElementById("toast");
+        toast.className = "toast show";
+        setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+    }
+</script>
+
+</body>
+</html>
